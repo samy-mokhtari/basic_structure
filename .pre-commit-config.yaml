@@ -1,0 +1,77 @@
+# pre-commit configuration
+#
+# Purpose
+# - Enforce consistent code quality locally before changes reach GitHub.
+# - Keep this repository "showcase-ready" (clean diffs, readable code, fewer regressions).
+#
+# What runs when
+# - On commit:
+#   - Generic hygiene checks (whitespace, EOF, YAML validity, merge conflict markers, big files)
+#   - Backend (Python): Ruff formatter + linter (with auto-fix; fails if fixes were applied)
+#   - Frontend (TS/React): Prettier + ESLint (auto-fix) on frontend files only
+# - On push:
+#   - Backend tests via pytest (to prevent pushing broken code)
+#
+# Notes / Assumptions
+# - This file must stay at the repository root (Git hooks are repo-scoped).
+# - Backend hooks (ruff/pytest) use `language: system`:
+#   - Run git commit/push from a terminal where the backend venv is active (so `python`, `ruff` are available).
+# - Frontend hooks use `npx --no-install`:
+#   - Requires `npm install` already run in `frontend/` (so Prettier/ESLint exist in node_modules).
+# - Paths are intentionally scoped to avoid running unrelated checks (backend vs
+
+repos:
+  # Basic showcase: file cleanliness
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: check-yaml
+      - id: check-merge-conflict
+      - id: check-added-large-files
+
+  - repo: local
+    hooks:
+      # -------------------------
+      # Backend (Python) - COMMIT
+      # -------------------------
+      - id: ruff-format
+        name: ruff format (backend)
+        entry: ruff format
+        language: system
+        types_or: [python, pyi]
+        files: ^backend/
+
+      - id: ruff-check
+        name: ruff check (backend)
+        entry: ruff check --fix --exit-non-zero-on-fix
+        language: system
+        types_or: [python, pyi]
+        files: ^backend/
+
+      # -------------------------
+      # Backend (Python) - PUSH
+      # -------------------------
+      - id: pytest
+        name: pytest (backend)
+        entry: python -m pytest
+        language: system
+        pass_filenames: false
+        stages: [pre-push]
+        files: ^backend/
+
+      # -------------------------
+      # Frontend (TS/React) - COMMIT
+      # -------------------------
+      - id: prettier
+        name: prettier (frontend)
+        entry: npx --prefix frontend --no-install prettier --write
+        language: system
+        files: ^frontend/.*\.(ts|tsx|js|jsx|json|css|scss|md|yml|yaml)$
+
+      - id: eslint
+        name: eslint (frontend)
+        entry: npx --prefix frontend --no-install eslint --fix --max-warnings=0 --config frontend/eslint.config.js
+        language: system
+        files: ^frontend/.*\.(ts|tsx|js|jsx)$

@@ -31,42 +31,34 @@ repos:
       - id: check-merge-conflict
       - id: check-added-large-files
 
-  - repo: local
+  # Backend: Ruff managed by pre-commit (no venv required for ruff)
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.12.8
     hooks:
-      # -------------------------
-      # Backend (Python) - COMMIT
-      # -------------------------
       - id: ruff-format
         name: ruff format (backend)
-        entry: ruff format
-        language: system
-        types_or: [python, pyi]
         files: ^backend/
-
-      - id: ruff-check
+      - id: ruff
         name: ruff check (backend)
-        entry: ruff check --fix --exit-non-zero-on-fix
-        language: system
-        types_or: [python, pyi]
+        args: [--fix, --exit-non-zero-on-fix]
         files: ^backend/
 
-      # -------------------------
-      # Backend (Python) - PUSH
-      # -------------------------
+  # Local hooks: pytest + frontend tooling
+  - repo: local
+    hooks:
+      # Backend tests on push (requires python env available)
       - id: pytest
         name: pytest (backend)
-        entry: python -m pytest
+        entry: python scripts/run_pytest.py
         language: system
         pass_filenames: false
         stages: [pre-push]
         files: ^backend/
 
-      # -------------------------
-      # Frontend (TS/React) - COMMIT
-      # -------------------------
+      # Frontend formatting/linting (uses deps installed in frontend/)
       - id: prettier
         name: prettier (frontend)
-        entry: npx --prefix frontend --no-install prettier --write
+        entry: npx --prefix frontend --no-install prettier --write --config frontend/.prettierrc.json
         language: system
         files: ^frontend/.*\.(ts|tsx|js|jsx|json|css|scss|md|yml|yaml)$
 

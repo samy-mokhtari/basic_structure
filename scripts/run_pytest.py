@@ -1,3 +1,34 @@
+"""
+scripts/run_pytest.py
+
+Purpose
+- Make the backend test suite runnable in a consistent way from anywhere (Git hooks, CI, CLI),
+  without requiring the developer to manually activate a virtual environment.
+- Provide a "self-validating" bootstrap for a fresh project/template installation:
+  - Creates backend/.venv if missing
+  - Installs minimal test dependencies (or backend/requirements-dev.txt if present)
+  - Runs pytest from the backend directory
+
+Why this exists
+- pre-commit hooks run commands in different contexts (terminal, VS Code UI, GUI clients).
+  Relying on an activated venv is fragile.
+- This wrapper centralizes the logic for locating/creating the backend venv and executing tests.
+
+Behavior
+1) Detect repository root and backend directory.
+2) Ensure backend/.venv exists (create it using the current Python interpreter if needed).
+3) Upgrade pip inside the venv.
+4) Install dev/test dependencies:
+   - Prefer backend/requirements-dev.txt if present
+   - Otherwise fall back to installing pytest only (template-friendly)
+5) Run `pytest -q` from backend/ and return pytest's exit code.
+
+Notes
+- The virtual environment directory (backend/.venv) should be gitignored.
+- If your backend becomes an installable package, you may optionally install it in editable mode.
+- This script is designed to be invoked by pre-commit (pre-push stage), but can also be run manually.
+"""
+
 from __future__ import annotations
 
 import os

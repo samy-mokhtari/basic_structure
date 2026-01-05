@@ -1,4 +1,33 @@
 #!/usr/bin/env bash
+# ------------------------------------------------------------------------------
+# bootstrap.sh
+#
+# Purpose
+# - Bootstrap a fresh clone of this repository/template so it is immediately usable.
+# - Install and wire local quality gates (pre-commit hooks) for a "showcase-ready" workflow.
+#
+# What this script does
+# 1) Backend (Python):
+#    - Create a virtual environment in backend/.venv (if missing)
+#    - Upgrade pip
+#    - Install required tooling: pre-commit, ruff, pytest
+# 2) Frontend (Node):
+#    - Run `npm install` inside frontend/ (if package.json exists)
+# 3) Git hooks:
+#    - Migrate pre-commit config to the latest schema (safe to run repeatedly)
+#    - Install pre-commit hooks for commit + pre-push stages
+# 4) Validation:
+#    - Optionally run pre-commit across the whole repo to catch issues early
+#
+# Assumptions / Requirements
+# - Python is available on PATH (for venv creation).
+# - Node + npm are available on PATH (for frontend install).
+# - Run from the repository root (or any folder; the script resolves its own location).
+#
+# Notes
+# - backend/.venv and frontend/node_modules are local artifacts and must be gitignored.
+# - This script is safe to re-run; it will reuse existing environments where possible.
+# ------------------------------------------------------------------------------
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
